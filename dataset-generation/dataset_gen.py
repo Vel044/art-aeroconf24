@@ -15,7 +15,7 @@ from dynamics.orbit_dynamics import *
 from optimization.rpod_scenario import *
 from optimization.ocp import *
 
-N_data = 200000
+N_data = 1000
 
 n_S = 6 # state size
 n_A = 3 # action size
@@ -68,10 +68,10 @@ for i in range(N_data):
     if np.char.equal(feas_cvx_i,'optimal'):
 
         #  Solve transfer scp
-        states_roe_scp_i, actions_scp_i, feas_scp_i = solve_scp(stm_i, cim_i, psi_i, state_roe_0, states_roe_cvx_i, n_time_rpod)
-        states_rtn_scp_i = roe_to_rtn_horizon(states_roe_scp_i, oe_i, n_time_rpod)
+        states_roe_scp_i, actions_scp_i, feas_scp_i, iter_scp_i, J_vect_i, runtime_scp_i = solve_scp(stm_i, cim_i, psi_i, state_roe_0, states_roe_cvx_i, n_time_rpod)
 
         if np.char.equal(feas_scp_i,'optimal'):
+            states_rtn_scp_i = roe_to_rtn_horizon(states_roe_scp_i, oe_i, n_time_rpod)
             states_roe_cvx[i,:,:] = np.transpose(states_roe_cvx_i)
             states_rtn_cvx[i,:,:] = np.transpose(states_rtn_cvx_i)
             actions_cvx[i,:,:] = np.transpose(actions_cvx_i)

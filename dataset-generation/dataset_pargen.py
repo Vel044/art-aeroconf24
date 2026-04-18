@@ -1,8 +1,16 @@
 import os
 import sys
+import logging
 
 root_folder = os.path.abspath(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root_folder)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] [%(levelname)s] %(message)s',
+    datefmt='%H:%M:%S'
+)
+logger = logging.getLogger(__name__)
 
 import numpy as np
 import numpy.linalg as la
@@ -69,7 +77,7 @@ def for_computation(current_data_index):
         states_rtn_cvx_i = roe_to_rtn_horizon(states_roe_cvx_i, oe_i, n_time_rpod)
 
         #  Solve transfer scp
-        states_roe_scp_i, actions_scp_i, feas_scp_i = solve_scp(stm_i, cim_i, psi_i, state_roe_0, states_roe_cvx_i, n_time_rpod)
+        states_roe_scp_i, actions_scp_i, feas_scp_i, iter_scp_i, J_vect_i, runtime_scp_i = solve_scp(stm_i, cim_i, psi_i, state_roe_0, states_roe_cvx_i, n_time_rpod)
         # states_rtn_scp_i = roe_to_rtn_horizon(states_roe_scp_i, oe_i, n_time_rpod)
 
         if np.char.equal(feas_scp_i,'optimal'):
@@ -98,10 +106,13 @@ def for_computation(current_data_index):
 
 if __name__ == '__main__':
 
-    N_data = 200000
+    N_data = 1000
 
     n_S = 6 # state size
     n_A = 3 # action size
+
+    logger.info(f'开始生成数据集，目标样本数: {N_data}')
+    logger.info(f'状态维度: {n_S}，动作维度: {n_A}')
 
     states_roe_cvx = np.empty(shape=(N_data, n_time_rpod, n_S), dtype=float) # [m]
     states_rtn_cvx = np.empty(shape=(N_data, n_time_rpod, n_S), dtype=float) # [m,m,m,m/s,m/s,m/s]
@@ -118,8 +129,8 @@ if __name__ == '__main__':
 
     i_unfeas = []
 
-    # Pool creation --> Should automatically select the maximum number of processes
-    p = Pool(processes=16)
+    logger.info(f'启动 {16} 个进程并行计算...')
+    p = Pool(processes=20)
     for i, res in enumerate(tqdm(p.imap(for_computation, np.arange(N_data)), total=N_data)):
         # If the solution is feasible save the optimization output
         if res['feasible']:
@@ -141,6 +152,8 @@ if __name__ == '__main__':
             i_unfeas += [ i ]
 
     # Remove unfeasible data points
+    logger.info(f'数据生成完成，共移除 {len(i_unfeas)} 个unfeasible样本，有效样本数: {N_data - len(i_unfeas)}')
+
     if i_unfeas:
         states_roe_cvx = np.delete(states_roe_cvx, i_unfeas, axis=0)
         states_rtn_cvx = np.delete(states_rtn_cvx, i_unfeas, axis=0)
@@ -159,3 +172,8 @@ if __name__ == '__main__':
     np.savez_compressed('dataset-rpod-v05-scp', states_roe_scp = states_roe_scp, states_rtn_scp = states_rtn_scp, actions_scp=actions_scp)
     np.savez_compressed('dataset-rpod-v05-cvx', states_roe_cvx = states_roe_cvx, states_rtn_cvx = states_rtn_cvx, actions_cvx=actions_cvx)
     np.savez_compressed('dataset-rpod-v05-param', time = time, oe = oe, dtime = dtime, horizons = horizons)
+
+    logger.info('数据集已保存:')
+    logger.info('  - dataset-rpod-v05-scp.npz')
+    logger.info('  - dataset-rpod-v05-cvx.npz')
+    logger.info('  - dataset-rpod-v05-param.npz')

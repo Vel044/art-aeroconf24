@@ -135,7 +135,7 @@ if verbose:
 train_loader = DataLoader(
     train_dataset,
     sampler=torch.utils.data.RandomSampler(
-        train_dataset, replacement=True, num_samples=int(1e10)),
+        train_dataset, replacement=True, num_samples=int(1e4)),
     shuffle=False,
     pin_memory=True,
     batch_size=4,
@@ -144,7 +144,7 @@ train_loader = DataLoader(
 eval_loader = DataLoader(
     test_dataset,
     sampler=torch.utils.data.RandomSampler(
-        test_dataset, replacement=True, num_samples=int(1e10)),
+        test_dataset, replacement=True, num_samples=int(1e4)),
     shuffle=False,
     pin_memory=True,
     batch_size=4,
@@ -184,7 +184,7 @@ num_train_epochs = 1
 num_update_steps_per_epoch = len(train_dataloader)
 
 if use_lr_scheduler:
-    num_training_steps = 10000000000
+    num_training_steps = 10000
     lr_scheduler = get_scheduler(
         name="linear",
         optimizer=optimizer,
