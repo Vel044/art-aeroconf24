@@ -106,7 +106,7 @@ def for_computation(current_data_index):
 
 if __name__ == '__main__':
 
-    N_data = 1000
+    N_data = 50000
 
     n_S = 6 # state size
     n_A = 3 # action size
@@ -130,7 +130,7 @@ if __name__ == '__main__':
     i_unfeas = []
 
     logger.info(f'启动 {16} 个进程并行计算...')
-    p = Pool(processes=20)
+    p = Pool(processes=16)
     for i, res in enumerate(tqdm(p.imap(for_computation, np.arange(N_data)), total=N_data)):
         # If the solution is feasible save the optimization output
         if res['feasible']:
