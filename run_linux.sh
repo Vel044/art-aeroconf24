@@ -1,10 +1,16 @@
-C:\Users\18154\anaconda3\envs\art\python.exe d:\Tasks\art-aeroconf24\dataset-generation\dataset_gen.py
+#!/bin/bash
 
-# 多核Generation
-C:\Users\18154\anaconda3\envs\art\python.exe d:\Tasks\art-aeroconf24\dataset-generation\dataset_pargen.py
+# 数据集生成（单核）
+python dataset-generation/dataset_gen.py
 
-# preprocess
-C:\Users\18154\anaconda3\envs\art\python.exe d:\Tasks\art-aeroconf24\dataset-generation\preprocessing.py
+# 多核生成
+python dataset-generation/dataset_pargen.py
 
-# train
-C:\Users\18154\anaconda3\envs\art\python.exe d:\Tasks\art-aeroconf24\transformer\main_train.py
+# 预处理
+python dataset-generation/preprocessing.py
+
+# 训练（4卡）
+CUDA_VISIBLE_DEVICES=0 nohup python transformer/main_train.py > train.log 2>&1 &
+
+# 优化
+python optimization/main_optimization.py
